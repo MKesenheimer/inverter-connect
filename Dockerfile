@@ -1,7 +1,7 @@
 # builder image
-FROM ubuntu:latest AS builder
+FROM ubuntu:noble-20240225 AS builder
 
-RUN apt-get update && apt-get install --no-install-recommends -y python3.10 python3.10-dev python3.10-venv python3-pip python3-wheel build-essential && \
+RUN apt-get update && apt-get install --no-install-recommends -y python3.12 python3.12-dev python3.12-venv python3-pip python3-wheel build-essential && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # create and activate virtual environment
@@ -19,7 +19,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 FROM ubuntu:latest AS runner
 LABEL Description="inverter-connect"
 
-RUN apt-get update && apt-get install --no-install-recommends -y python3.10 python3.10-venv && \
+RUN apt-get update && apt-get install --no-install-recommends -y python3.12 python3.12-venv && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN useradd --create-home user
