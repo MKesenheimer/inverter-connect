@@ -1,41 +1,30 @@
-# builder image
-FROM ubuntu:latest AS builder
+FROM python:3.11
 
-RUN apt-get update && apt-get install --no-install-recommends -y python3 python3-dev python3-venv python3-pip python3-wheel build-essential && \
-	apt-get clean && rm -rf /var/lib/apt/lists/*
+# create new user
+RUN useradd --create-home user
+RUN mkdir /home/user/inverter-connect
+WORKDIR /home/user/inverter-connect
+COPY . .
 
 # create and activate virtual environment
-# using final folder name to avoid path issues with packages
-RUN python3 -m venv /home/user/inverter-connect/.venv-app
+RUN /usr/local/bin/python --version
+RUN /usr/local/bin/python -m venv .venv-app
 ENV PATH="/home/user/inverter-connect/.venv-app/bin:$PATH"
 
 # install requirements
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir wheel
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir wheel
+RUN pip install --no-cache-dir -r requirements.txt
 
-
-# runner image
-FROM ubuntu:latest AS runner
-LABEL Description="inverter-connect"
-
-RUN apt-get update && apt-get install --no-install-recommends -y python3 python3-venv && \
-	apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN useradd --create-home user
-
-#USER user
-RUN mkdir /home/user/inverter-connect
-COPY --from=builder /home/user/inverter-connect/.venv-app /home/user/inverter-connect/.venv-app
-WORKDIR /home/user/inverter-connect
-COPY . .
-RUN chown -R user:user /home/user/inverter-connect
-
+# install config
 RUN mkdir -p /home/user/.config/inverter-connect
 COPY cfg/inverter-connect.toml /home/user/.config/inverter-connect/inverter-connect.toml
-RUN chown -R user:user /home/user/.config/inverter-connect
 
-# change user
+# change ownership
+RUN chown -R user:user /home/user/.config/inverter-connect
+RUN chown -R user:user /home/user/inverter-connect
+
+# change to user
 USER user
 
 # make sure all messages always reach console
