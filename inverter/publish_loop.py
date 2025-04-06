@@ -22,10 +22,14 @@ def publish_forever(*, config: Config, verbosity):
     start_time = time.monotonic()
 
     mqtt_settings = config.mqtt_settings
-    try:
-        publisher = HaMqttPublisher(settings=mqtt_settings, verbosity=verbosity, config_count=1)
-    except Exception as err:
-        human_error(message='given {mqtt_settings!r} is wrong?!?', exception=err)
+    
+    publisher = None
+    while publisher is None:
+        try:
+            publisher = HaMqttPublisher(settings=mqtt_settings, verbosity=verbosity, config_count=1)
+        except Exception as err:
+            human_error(message='given {mqtt_settings!r} is wrong?!?', exception=err)
+            time.sleep(10)
 
     reset_state = DailyProductionResetState(config_path=config.config_path)
 
